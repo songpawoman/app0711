@@ -4,15 +4,19 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 //실제로 모든 게임의 그래픽이 표현될 컨테이너
-public class GamePanel extends JPanel{
+public class GamePanel extends JPanel implements KeyListener{
 	public static final int WIDTH=1200;
 	public static final int HEIGHT=700;
 
@@ -23,6 +27,7 @@ public class GamePanel extends JPanel{
 	Thread loopThread;
 	Image bgImg; //배경이미지 
 	Hero hero;
+	List<Bullet> bulletList = new ArrayList<Bullet>();
 	
 	public GamePanel() {
 		setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -47,6 +52,9 @@ public class GamePanel extends JPanel{
 		};
 		
 		loopThread.start(); //Runnable 로 진입
+		
+		//패널에 키보드와 관련된 리스너연결 
+		this.addKeyListener(this);
 	}
 	
 	//개발자가 주도하여 그림을 뺏어 그려야 게임을 구현할 수 있다..
@@ -56,7 +64,13 @@ public class GamePanel extends JPanel{
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		
 		g.drawImage(bgImg, 0, 0, WIDTH, HEIGHT, this);
+		
 		hero.render(g);
+		
+		for(int i=0;i<bulletList.size();i++) {
+			bulletList.get(i).render(g);			
+		}
+
 	}
 	
 	//배경이미지 만들기 
@@ -77,9 +91,64 @@ public class GamePanel extends JPanel{
 		hero = new Hero(0, 200, 100, 65, 0, 0);
 	}
 	
+	//주인공의 좌우 움직임
+	public void moveX(int velX) {
+		hero.velX=velX;
+	}
+	//주인공의 위아래 움직임
+	public void moveY(int velY) {
+		hero.velY=velY;
+	}
+	
+	//주인공 총알 발사 
+	public void fire() {
+		System.out.println("발사");
+		Bullet bullet = new Bullet(hero.x+hero.width, hero.y+(hero.height/2), 25,25,5,0);
+		 
+		bulletList.add(bullet);//리스트에 추가하기
+	}
+	
+	@Override
+	public void keyTyped(KeyEvent e) {
+	}
+	@Override
+	public void keyPressed(KeyEvent e) {
+		//System.out.println("키보드 눌렀어?");
+		int key = e.getKeyCode();
+		
+		switch(key) {
+			case  KeyEvent.VK_LEFT:moveX(-2);break;
+			case  KeyEvent.VK_RIGHT:moveX(2);break;
+			case  KeyEvent.VK_UP:moveY(-2);break;
+			case  KeyEvent.VK_DOWN:moveY(2);break;
+			case  KeyEvent.VK_SPACE:fire();break;
+		}
+	}
+	
+	@Override
+	public void keyReleased(KeyEvent e) {
+		int key = e.getKeyCode();
+		
+		switch(key) {
+			case  KeyEvent.VK_LEFT:moveX(0);break;
+			case  KeyEvent.VK_RIGHT:moveX(0);break;
+			case  KeyEvent.VK_UP:moveY(0);break;
+			case  KeyEvent.VK_DOWN:moveY(0);break;
+		}
+	}
+
+	
+	
 	//게임의 심장인 루프를 수행 
 	public void loop() {
+		//주인공에 대한 움직임
 		hero.tick();
+		
+		//총알에 대한 움직임
+		for(int i=0;i<bulletList.size();i++) {
+			bulletList.get(i).tick();			
+		}
+		
 		repaint();
 	}
 }
