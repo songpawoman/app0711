@@ -36,7 +36,8 @@ public class ThreadTest extends JFrame {
 	JButton bt; //시작 버튼
 	JLabel la1; //1씩 증가하는 숫자를 보여줄 라벨
 	JLabel la2; //5씩 감소하는 숫자를 보여줄 라벨 
-
+	int n;
+	
 	public ThreadTest() {
 		bt = new JButton("Start");
 		la1=new JLabel("0");
@@ -90,11 +91,29 @@ public class ThreadTest extends JFrame {
 			System.out.println("호출함");
 		}
 		*/
-		AddThread t1=new AddThread();
+		AddThread t1=new AddThread(this);
 		t1.start();//Runnable로 진입
 		
-		MinusThread t2= new MinusThread();
+		//MinusThread t2= new MinusThread();
+		Thread t2=new Thread() {
+			public void run() {
+				while(true) {
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					n-=5;
+					la2.setText(Integer.toString(n));
+				}
+			}
+		};
 		t2.start();
+		
+		//쓰레드를 이용하는 코드는 비동기방식으로 동작되므로, 메인쓰레드는 개발자가정의한
+		//쓰레드의 실행완료를 기다리지 않는다..
+		//비동기방식이란? 특정 코드 끝날때까지 기다리지 않고, 다른 코드를 실행할수 있는 방식
+		System.out.println("메인쓰레드에 의해 실행");
 	}
 	
 	public static void main(String[] args) {
